@@ -9,13 +9,14 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/prasmussen/gdrive/auth"
-	"github.com/prasmussen/gdrive/cli"
-	"github.com/prasmussen/gdrive/drive"
+	"github.com/grandeto/gdrive/auth"
+	"github.com/grandeto/gdrive/cli"
+	"github.com/grandeto/gdrive/drive"
 )
 
-const ClientId = "367116221053-7n0vf5akeru7on6o2fjinrecpdoe99eg.apps.googleusercontent.com"
-const ClientSecret = "1qsNodXNaWq1mQuBjUjmvhoO"
+var ClientId = os.Getenv("CLIENT_ID")
+var ClientSecret = os.Getenv("CLIENT_SECRET")
+
 const TokenFilename = "token_v2.json"
 const DefaultCacheFileName = "file_cache.json"
 

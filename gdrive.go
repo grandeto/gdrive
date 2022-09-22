@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/prasmussen/gdrive/cli"
+	"github.com/grandeto/gdrive/cli"
+	_ "github.com/joho/godotenv/autoload"
 )
 
 const Name = "gdrive"
@@ -22,8 +23,8 @@ const DefaultShareType = "anyone"
 
 var DefaultConfigDir = GetDefaultConfigDir()
 
-func main() {
-	globalFlags := []cli.Flag{
+func LoadGlobalFlags() []cli.Flag {
+	return []cli.Flag{
 		cli.StringFlag{
 			Name:         "configDir",
 			Patterns:     []string{"-c", "--config"},
@@ -46,8 +47,10 @@ func main() {
 			Description: "Oauth service account filename, used for server to server communication without user interaction (filename path is relative to config dir)",
 		},
 	}
+}
 
-	handlers := []*cli.Handler{
+func LoadHandlers(globalFlags []cli.Flag) []*cli.Handler {
+	return []*cli.Handler{
 		&cli.Handler{
 			Pattern:     "[global] list [options]",
 			Description: "List files",
@@ -850,6 +853,12 @@ func main() {
 			Callback:    printSubCommandHelp,
 		},
 	}
+}
+
+func main() {
+	globalFlags := LoadGlobalFlags()
+
+	handlers := LoadHandlers(globalFlags)
 
 	cli.SetHandlers(handlers)
 
