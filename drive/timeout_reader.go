@@ -1,13 +1,13 @@
 package drive
 
 import (
-	"golang.org/x/net/context"
 	"io"
 	"sync"
 	"time"
-)
 
-const TimeoutTimerInterval = time.Second * 10
+	"github.com/grandeto/gdrive/constants"
+	"golang.org/x/net/context"
+)
 
 type timeoutReaderWrapper func(io.Reader) io.Reader
 
@@ -81,7 +81,7 @@ func (self *TimeoutReader) startTimer() {
 	defer self.mutex.Unlock()
 
 	if !self.done {
-		self.timer = time.AfterFunc(TimeoutTimerInterval, self.timeout)
+		self.timer = time.AfterFunc(constants.TimeoutTimerInterval, self.timeout)
 	}
 }
 

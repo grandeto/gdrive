@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/grandeto/gdrive/constants"
 	"google.golang.org/api/drive/v3"
 	"google.golang.org/api/googleapi"
 )
@@ -252,7 +253,7 @@ func (self *Drive) downloadDirectory(parent *drive.File, args DownloadArgs) erro
 }
 
 func isDir(f *drive.File) bool {
-	return f.MimeType == DirectoryMimeType
+	return f.MimeType == constants.DirectoryMimeType
 }
 
 func isBinary(f *drive.File) bool {

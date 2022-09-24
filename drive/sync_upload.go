@@ -3,13 +3,15 @@ package drive
 import (
 	"bytes"
 	"fmt"
-	"google.golang.org/api/drive/v3"
-	"google.golang.org/api/googleapi"
 	"io"
 	"os"
 	"path/filepath"
 	"sort"
 	"time"
+
+	"github.com/grandeto/gdrive/constants"
+	"google.golang.org/api/drive/v3"
+	"google.golang.org/api/googleapi"
 )
 
 type UploadSyncArgs struct {
@@ -21,7 +23,7 @@ type UploadSyncArgs struct {
 	DeleteExtraneous bool
 	ChunkSize        int64
 	Timeout          time.Duration
-	Resolution       ConflictResolution
+	Resolution       constants.ConflictResolution
 	Comparer         FileComparer
 }
 
@@ -57,7 +59,7 @@ func (self *Drive) UploadSync(args UploadSyncArgs) error {
 	}
 
 	// Ensure that we don't overwrite any remote changes
-	if args.Resolution == NoResolution {
+	if args.Resolution == constants.NoResolution {
 		err = ensureNoRemoteModifications(changedFiles)
 		if err != nil {
 			return fmt.Errorf("Conflict detected!\nThe following files have changed and the remote file are newer than it's local counterpart:\n\n%s\nNo conflict resolution was given, aborting...", err)
@@ -259,7 +261,7 @@ func (self *Drive) deleteExtraneousRemoteFiles(files *syncFiles, args UploadSync
 func (self *Drive) createMissingRemoteDir(args createMissingRemoteDirArgs) (*drive.File, error) {
 	dstFile := &drive.File{
 		Name:          args.name,
-		MimeType:      DirectoryMimeType,
+		MimeType:      constants.DirectoryMimeType,
 		Parents:       []string{args.parentId},
 		AppProperties: map[string]string{"sync": "true", "syncRootId": args.rootId},
 	}
@@ -270,7 +272,7 @@ func (self *Drive) createMissingRemoteDir(args createMissingRemoteDirArgs) (*dri
 
 	f, err := self.service.Files.Create(dstFile).Do()
 	if err != nil {
-		if isBackendOrRateLimitError(err) && args.try < MaxErrorRetries {
+		if isBackendOrRateLimitError(err) && args.try < constants.MaxErrorRetries {
 			exponentialBackoffSleep(args.try)
 			args.try++
 			return self.createMissingRemoteDir(args)
@@ -313,7 +315,7 @@ func (self *Drive) uploadMissingFile(parentId string, lf *LocalFile, args Upload
 
 	_, err = self.service.Files.Create(dstFile).Fields("id", "name", "size", "md5Checksum").Context(ctx).Media(reader, chunkSize).Do()
 	if err != nil {
-		if isBackendOrRateLimitError(err) && try < MaxErrorRetries {
+		if isBackendOrRateLimitError(err) && try < constants.MaxErrorRetries {
 			exponentialBackoffSleep(try)
 			try++
 			return self.uploadMissingFile(parentId, lf, args, try)
@@ -354,7 +356,7 @@ func (self *Drive) updateChangedFile(cf *changedFile, args UploadSyncArgs, try i
 
 	_, err = self.service.Files.Update(cf.remote.file.Id, dstFile).Context(ctx).Media(reader, chunkSize).Do()
 	if err != nil {
-		if isBackendOrRateLimitError(err) && try < MaxErrorRetries {
+		if isBackendOrRateLimitError(err) && try < constants.MaxErrorRetries {
 			exponentialBackoffSleep(try)
 			try++
 			return self.updateChangedFile(cf, args, try)
@@ -375,7 +377,7 @@ func (self *Drive) deleteRemoteFile(rf *RemoteFile, args UploadSyncArgs, try int
 
 	err := self.service.Files.Delete(rf.file.Id).Do()
 	if err != nil {
-		if isBackendOrRateLimitError(err) && try < MaxErrorRetries {
+		if isBackendOrRateLimitError(err) && try < constants.MaxErrorRetries {
 			exponentialBackoffSleep(try)
 			try++
 			return self.deleteRemoteFile(rf, args, try)
@@ -397,37 +399,37 @@ func (self *Drive) dirIsEmpty(id string) (bool, error) {
 	return len(fileList.Files) == 0, nil
 }
 
-func checkRemoteConflict(cf *changedFile, resolution ConflictResolution) (bool, string) {
+func checkRemoteConflict(cf *changedFile, resolution constants.ConflictResolution) (bool, string) {
 	// No conflict unless remote file was last modified
-	if cf.compareModTime() != RemoteLastModified {
+	if cf.compareModTime() != constants.RemoteLastModified {
 		return false, ""
 	}
 
 	// Don't skip if want to keep the local file
-	if resolution == KeepLocal {
+	if resolution == constants.KeepLocal {
 		return false, ""
 	}
 
 	// Skip if we want to keep the remote file
-	if resolution == KeepRemote {
+	if resolution == constants.KeepRemote {
 		return true, "conflicting file, keeping remote file"
 	}
 
-	if resolution == KeepLargest {
+	if resolution == constants.KeepLargest {
 		largest := cf.compareSize()
 
 		// Skip if the remote file is largest
-		if largest == RemoteLargestSize {
+		if largest == constants.RemoteLargestSize {
 			return true, "conflicting file, remote file is largest, keeping remote"
 		}
 
 		// Don't skip if the local file is largest
-		if largest == LocalLargestSize {
+		if largest == constants.LocalLargestSize {
 			return false, ""
 		}
 
 		// Keep remote if both files have the same size
-		if largest == EqualSize {
+		if largest == constants.EqualSize {
 			return true, "conflicting file, file sizes are equal, keeping remote"
 		}
 	}

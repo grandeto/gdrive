@@ -2,11 +2,11 @@ package drive
 
 import (
 	"fmt"
-	"google.golang.org/api/drive/v3"
 	"io"
-)
 
-const DirectoryMimeType = "application/vnd.google-apps.folder"
+	"github.com/grandeto/gdrive/constants"
+	"google.golang.org/api/drive/v3"
+)
 
 type MkdirArgs struct {
 	Out         io.Writer
@@ -28,7 +28,7 @@ func (self *Drive) mkdir(args MkdirArgs) (*drive.File, error) {
 	dstFile := &drive.File{
 		Name:        args.Name,
 		Description: args.Description,
-		MimeType:    DirectoryMimeType,
+		MimeType:    constants.DirectoryMimeType,
 	}
 
 	// Set parent folders

@@ -2,43 +2,18 @@ package drive
 
 import (
 	"fmt"
-	"github.com/sabhiram/go-gitignore"
-	"github.com/soniakeys/graph"
-	"google.golang.org/api/drive/v3"
-	"google.golang.org/api/googleapi"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
 	"text/tabwriter"
 	"time"
-)
 
-const DefaultIgnoreFile = ".gdriveignore"
-
-type ModTime int
-
-const (
-	LocalLastModified ModTime = iota
-	RemoteLastModified
-	EqualModifiedTime
-)
-
-type LargestSize int
-
-const (
-	LocalLargestSize LargestSize = iota
-	RemoteLargestSize
-	EqualSize
-)
-
-type ConflictResolution int
-
-const (
-	NoResolution ConflictResolution = iota
-	KeepLocal
-	KeepRemote
-	KeepLargest
+	"github.com/grandeto/gdrive/constants"
+	ignore "github.com/sabhiram/go-gitignore"
+	"github.com/soniakeys/graph"
+	"google.golang.org/api/drive/v3"
+	"google.golang.org/api/googleapi"
 )
 
 func (self *Drive) prepareSyncFiles(localPath string, root *drive.File, cmp FileComparer) (*syncFiles, error) {
@@ -105,7 +80,7 @@ func prepareLocalFiles(root string) ([]*LocalFile, error) {
 	}
 
 	// Prepare ignorer
-	shouldIgnore, err := prepareIgnorer(filepath.Join(absRootPath, DefaultIgnoreFile))
+	shouldIgnore, err := prepareIgnorer(filepath.Join(absRootPath, constants.DefaultIgnoreFile))
 	if err != nil {
 		return nil, err
 	}
@@ -330,34 +305,34 @@ func (self RemoteFile) Modified() time.Time {
 	return t
 }
 
-func (self *changedFile) compareModTime() ModTime {
+func (self *changedFile) compareModTime() constants.ModTime {
 	localTime := self.local.Modified()
 	remoteTime := self.remote.Modified()
 
 	if localTime.After(remoteTime) {
-		return LocalLastModified
+		return constants.LocalLastModified
 	}
 
 	if remoteTime.After(localTime) {
-		return RemoteLastModified
+		return constants.RemoteLastModified
 	}
 
-	return EqualModifiedTime
+	return constants.EqualModifiedTime
 }
 
-func (self *changedFile) compareSize() LargestSize {
+func (self *changedFile) compareSize() constants.LargestSize {
 	localSize := self.local.Size()
 	remoteSize := self.remote.Size()
 
 	if localSize > remoteSize {
-		return LocalLargestSize
+		return constants.LocalLargestSize
 	}
 
 	if remoteSize > localSize {
-		return RemoteLargestSize
+		return constants.RemoteLargestSize
 	}
 
-	return EqualSize
+	return constants.EqualSize
 }
 
 func (self *syncFiles) filterMissingRemoteDirs() []*LocalFile {
@@ -524,7 +499,7 @@ func findLocalConflicts(files []*changedFile) []*changedFile {
 	var conflicts []*changedFile
 
 	for _, cf := range files {
-		if cf.compareModTime() == LocalLastModified {
+		if cf.compareModTime() == constants.LocalLastModified {
 			conflicts = append(conflicts, cf)
 		}
 	}
@@ -536,7 +511,7 @@ func findRemoteConflicts(files []*changedFile) []*changedFile {
 	var conflicts []*changedFile
 
 	for _, cf := range files {
-		if cf.compareModTime() == RemoteLastModified {
+		if cf.compareModTime() == constants.RemoteLastModified {
 			conflicts = append(conflicts, cf)
 		}
 	}

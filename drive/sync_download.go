@@ -3,13 +3,15 @@ package drive
 import (
 	"bytes"
 	"fmt"
-	"google.golang.org/api/drive/v3"
-	"google.golang.org/api/googleapi"
 	"io"
 	"os"
 	"path/filepath"
 	"sort"
 	"time"
+
+	"github.com/grandeto/gdrive/constants"
+	"google.golang.org/api/drive/v3"
+	"google.golang.org/api/googleapi"
 )
 
 type DownloadSyncArgs struct {
@@ -20,7 +22,7 @@ type DownloadSyncArgs struct {
 	DryRun           bool
 	DeleteExtraneous bool
 	Timeout          time.Duration
-	Resolution       ConflictResolution
+	Resolution       constants.ConflictResolution
 	Comparer         FileComparer
 }
 
@@ -46,7 +48,7 @@ func (self *Drive) DownloadSync(args DownloadSyncArgs) error {
 	fmt.Fprintf(args.Out, "Found %d local files and %d remote files\n", len(files.local), len(files.remote))
 
 	// Ensure that we don't overwrite any local changes
-	if args.Resolution == NoResolution {
+	if args.Resolution == constants.NoResolution {
 		err = ensureNoLocalModifications(changedFiles)
 		if err != nil {
 			return fmt.Errorf("Conflict detected!\nThe following files have changed and the local file are newer than it's remote counterpart:\n\n%s\nNo conflict resolution was given, aborting...", err)
@@ -193,7 +195,7 @@ func (self *Drive) downloadRemoteFile(id, fpath string, args DownloadSyncArgs, t
 
 	res, err := self.service.Files.Get(id).Context(ctx).Download()
 	if err != nil {
-		if isBackendOrRateLimitError(err) && try < MaxErrorRetries {
+		if isBackendOrRateLimitError(err) && try < constants.MaxErrorRetries {
 			exponentialBackoffSleep(try)
 			try++
 			return self.downloadRemoteFile(id, fpath, args, try)
@@ -231,7 +233,7 @@ func (self *Drive) downloadRemoteFile(id, fpath string, args DownloadSyncArgs, t
 	_, err = io.Copy(outFile, reader)
 	if err != nil {
 		outFile.Close()
-		if try < MaxErrorRetries {
+		if try < constants.MaxErrorRetries {
 			exponentialBackoffSleep(try)
 			try++
 			return self.downloadRemoteFile(id, fpath, args, try)
@@ -275,37 +277,37 @@ func (self *Drive) deleteExtraneousLocalFiles(files *syncFiles, args DownloadSyn
 	return nil
 }
 
-func checkLocalConflict(cf *changedFile, resolution ConflictResolution) (bool, string) {
+func checkLocalConflict(cf *changedFile, resolution constants.ConflictResolution) (bool, string) {
 	// No conflict unless local file was last modified
-	if cf.compareModTime() != LocalLastModified {
+	if cf.compareModTime() != constants.LocalLastModified {
 		return false, ""
 	}
 
 	// Don't skip if want to keep the remote file
-	if resolution == KeepRemote {
+	if resolution == constants.KeepRemote {
 		return false, ""
 	}
 
 	// Skip if we want to keep the local file
-	if resolution == KeepLocal {
+	if resolution == constants.KeepLocal {
 		return true, "conflicting file, keeping local file"
 	}
 
-	if resolution == KeepLargest {
+	if resolution == constants.KeepLargest {
 		largest := cf.compareSize()
 
 		// Skip if the local file is largest
-		if largest == LocalLargestSize {
+		if largest == constants.LocalLargestSize {
 			return true, "conflicting file, local file is largest, keeping local"
 		}
 
 		// Don't skip if the remote file is largest
-		if largest == RemoteLargestSize {
+		if largest == constants.RemoteLargestSize {
 			return false, ""
 		}
 
 		// Keep local if both files have the same size
-		if largest == EqualSize {
+		if largest == constants.EqualSize {
 			return true, "conflicting file, file sizes are equal, keeping local"
 		}
 	}

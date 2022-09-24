@@ -1,4 +1,4 @@
-package main
+package util
 
 import (
 	"crypto/md5"
@@ -25,7 +25,7 @@ func Homedir() string {
 	return os.Getenv("HOME")
 }
 
-func equal(a, b []string) bool {
+func Equal(a, b []string) bool {
 	if a == nil && b == nil {
 		return true
 	}
@@ -53,14 +53,14 @@ func ExitF(format string, a ...interface{}) {
 	os.Exit(1)
 }
 
-func checkErr(err error) {
+func CheckErr(err error) {
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 }
 
-func writeJson(path string, data interface{}) error {
+func WriteJson(path string, data interface{}) error {
 	tmpFile := path + ".tmp"
 	f, err := os.Create(tmpFile)
 	if err != nil {
@@ -77,7 +77,7 @@ func writeJson(path string, data interface{}) error {
 	return os.Rename(tmpFile, path)
 }
 
-func md5sum(path string) string {
+func Md5sum(path string) string {
 	h := md5.New()
 	f, err := os.Open(path)
 	if err != nil {

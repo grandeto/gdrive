@@ -1,18 +1,18 @@
-package main
+package compare
 
 import (
 	"encoding/json"
 	"os"
 
+	"github.com/grandeto/gdrive/constants"
 	"github.com/grandeto/gdrive/drive"
+	"github.com/grandeto/gdrive/util"
 )
-
-const MinCacheFileSize = 5 * 1024 * 1024
 
 type Md5Comparer struct{}
 
 func (self Md5Comparer) Changed(local *drive.LocalFile, remote *drive.RemoteFile) bool {
-	return remote.Md5() != md5sum(local.AbsPath())
+	return remote.Md5() != util.Md5sum(local.AbsPath())
 }
 
 type CachedFileInfo struct {
@@ -51,10 +51,10 @@ func (self CachedMd5Comparer) md5(local *drive.LocalFile) string {
 	}
 
 	// Calculate new md5 sum
-	md5 := md5sum(local.AbsPath())
+	md5 := util.Md5sum(local.AbsPath())
 
 	// Cache file info if file meets size criteria
-	if local.Size() > MinCacheFileSize {
+	if local.Size() > constants.MinCacheFileSize {
 		self.cacheAdd(local, md5)
 		self.persist()
 	}
@@ -71,5 +71,5 @@ func (self CachedMd5Comparer) cacheAdd(lf *drive.LocalFile, md5 string) {
 }
 
 func (self CachedMd5Comparer) persist() {
-	writeJson(self.path, self.cache)
+	util.WriteJson(self.path, self.cache)
 }

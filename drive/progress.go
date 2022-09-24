@@ -5,10 +5,9 @@ import (
 	"io"
 	"io/ioutil"
 	"time"
-)
 
-const MaxDrawInterval = time.Second * 1
-const MaxRateInterval = time.Second * 3
+	"github.com/grandeto/gdrive/constants"
+)
 
 func getProgressReader(r io.Reader, w io.Writer, size int64) io.Reader {
 	// Don't wrap reader if output is discarded or size is too small
@@ -53,14 +52,14 @@ func (self *Progress) Read(p []byte) (int, error) {
 	}
 
 	// Update rate every x seconds
-	if self.rateUpdated.Add(MaxRateInterval).Before(now) {
+	if self.rateUpdated.Add(constants.MaxRateInterval).Before(now) {
 		self.rate = calcRate(newProgress-self.rateProgress, self.rateUpdated, now)
 		self.rateUpdated = now
 		self.rateProgress = newProgress
 	}
 
 	// Draw progress every x seconds
-	if self.updated.Add(MaxDrawInterval).Before(now) || isLast {
+	if self.updated.Add(constants.MaxDrawInterval).Before(now) || isLast {
 		self.draw(isLast)
 		self.updated = now
 	}
