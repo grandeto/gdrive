@@ -55,3 +55,4 @@ const TimeoutTimerInterval = time.Second * 10
 
 const TokenFilename = "token_v2.json"
 const DefaultCacheFileName = "file_cache.json"
+const AuthFileName = "gdrive_auth_value.txt"

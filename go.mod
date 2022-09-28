@@ -3,6 +3,8 @@ module github.com/grandeto/gdrive
 go 1.18
 
 require (
+	github.com/fsnotify/fsnotify v1.5.4
+	github.com/joho/godotenv v1.4.0
 	github.com/sabhiram/go-gitignore v0.0.0-20210923224102-525f6e181f06
 	github.com/soniakeys/graph v0.0.0-20160409104831-c265d9676750
 	golang.org/x/net v0.0.0-20220909164309-bea034e7d591
@@ -17,7 +19,6 @@ require (
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.1.0 // indirect
 	github.com/googleapis/gax-go/v2 v2.4.0 // indirect
-	github.com/joho/godotenv v1.4.0 // indirect
 	go.opencensus.io v0.23.0 // indirect
 	golang.org/x/sys v0.0.0-20220728004956-3c1f35247d10 // indirect
 	golang.org/x/text v0.3.7 // indirect

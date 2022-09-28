@@ -1,14 +1,18 @@
 package handlers
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
+	"github.com/fsnotify/fsnotify"
 	"github.com/grandeto/gdrive/auth"
 	"github.com/grandeto/gdrive/cli"
 	"github.com/grandeto/gdrive/compare"
@@ -394,15 +398,73 @@ func newDrive(args cli.Arguments) *drive.Drive {
 
 func authCodePrompt(url string) func() string {
 	return func() string {
-		fmt.Println("Authentication needed")
-		fmt.Println("Go to the following url in your browser:")
-		fmt.Printf("%s\n\n", url)
-		fmt.Print("Enter verification code: ")
+		homedir, err := os.UserHomeDir()
 
-		var code string
-		if _, err := fmt.Scan(&code); err != nil {
-			fmt.Printf("Failed reading code: %s", err.Error())
+		if err != nil {
+			util.ExitF(err.Error())
 		}
+
+		authFile := homedir + "/" + constants.AuthFileName
+
+		f, err := os.Create(authFile)
+
+		if err != nil {
+			util.ExitF(err.Error())
+		}
+
+		defer f.Close()
+
+		s1 := "Authentication needed"
+		s2 := "Go to the following url in your browser:"
+		s3 := url
+		s4 := "Enter verification code here, right after the collon:"
+
+		authMsg := fmt.Sprintf("%s\n%s\n%s\n\n%s", s1, s2, s3, s4)
+
+		f.WriteString(authMsg)
+
+		log.Printf("Check %s for authentication instructions\n\n", authFile)
+
+		// creates a new file watcher
+		watcher, err := fsnotify.NewWatcher()
+
+		if err != nil {
+			util.ExitF(err.Error())
+		}
+
+		defer watcher.Close()
+
+		done := make(chan string, 1)
+
+		go func() {
+			for {
+				select {
+				case event := <-watcher.Events:
+					if event.Name == authFile && event.Op.String() == "WRITE" {
+						ff, _ := os.Open(authFile)
+						fileScanner := bufio.NewScanner(ff)
+
+						fileScanner.Split(bufio.ScanLines)
+
+						for fileScanner.Scan() {
+							if strings.Contains(fileScanner.Text(), s4) {
+								code := strings.Split(fileScanner.Text(), s4)[1]
+								done <- code
+							}
+						}
+					}
+				case _ = <-watcher.Errors:
+					// log.Println("ERROR", err)
+				}
+			}
+		}()
+
+		if err := watcher.Add(authFile); err != nil {
+			util.ExitF(err.Error())
+		}
+
+		code := <-done
+
 		return code
 	}
 }
