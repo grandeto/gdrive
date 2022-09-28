@@ -2,12 +2,10 @@ package auth
 
 import (
 	"fmt"
-	"net/http"
-	"os"
-	"time"
-
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
+	"net/http"
+	"time"
 )
 
 type authCodeFn func(string) func() string
@@ -25,10 +23,7 @@ func NewFileSourceClient(clientId, clientSecret, tokenFile string, authFn authCo
 	// or refresh token is missing
 	if !exists || token.RefreshToken == "" {
 		authUrl := conf.AuthCodeURL("state", oauth2.AccessTypeOffline)
-		authCode := os.Getenv("AUTH_CODE")
-		if authCode == "" {
-			authCode = authFn(authUrl)()
-		}
+		authCode := authFn(authUrl)()
 		token, err = conf.Exchange(oauth2.NoContext, authCode)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to exchange auth code for token: %s", err)
@@ -72,16 +67,16 @@ func NewAccessTokenClient(clientId, clientSecret, accessToken string) *http.Clie
 
 func NewServiceAccountClient(serviceAccountFile string) (*http.Client, error) {
 	content, exists, err := ReadFile(serviceAccountFile)
-	if !exists {
+	if(!exists) {
 		return nil, fmt.Errorf("Service account filename %q not found", serviceAccountFile)
 	}
 
-	if err != nil {
+	if(err != nil) {
 		return nil, err
 	}
 
 	conf, err := google.JWTConfigFromJSON(content, "https://www.googleapis.com/auth/drive")
-	if err != nil {
+	if(err != nil) {
 		return nil, err
 	}
 	return conf.Client(oauth2.NoContext), nil
