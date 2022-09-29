@@ -24,6 +24,7 @@ import (
 
 var ClientId = os.Getenv("CLIENT_ID")
 var ClientSecret = os.Getenv("CLIENT_SECRET")
+var OsUser = os.Getenv("OS_USER")
 
 func ListHandler(ctx cli.Context) {
 	args := ctx.Args()
@@ -398,13 +399,7 @@ func newDrive(args cli.Arguments) *drive.Drive {
 
 func authCodePrompt(url string) func() string {
 	return func() string {
-		homedir, err := os.UserHomeDir()
-
-		if err != nil {
-			util.ExitF(err.Error())
-		}
-
-		authFile := homedir + "/" + constants.AuthFileName
+		authFile := constants.HomeDir + "/" + OsUser + "/" + constants.AuthFileName
 
 		f, err := os.Create(authFile)
 
