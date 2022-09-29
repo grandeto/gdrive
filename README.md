@@ -14,6 +14,8 @@ None, binaries are statically linked.
 If you want to compile from source you need the [go toolchain](http://golang.org/doc/install).
 Version 1.5 or higher.
 
+You need to set all the env variables present in `.env-example`
+
 ## Installation
 ### With [Homebrew](http://brew.sh) on Mac
 ```
@@ -23,10 +25,11 @@ brew install gdrive
 Download `gdrive` from one of the [links in the latest release](https://github.com/grandeto/gdrive/releases).
 The first time gdrive is launched (i.e. run `gdrive about` in your
 terminal not just `gdrive`), you will be prompted for a verification code.
-The code is obtained by following the printed url and authenticating with the
-google account for the drive you want access to. This will create a token file
-inside the .gdrive folder in your home directory. Note that anyone with access
-to this file will also have access to your google drive.
+The code is obtained by following the instructions printed inside 
+`gdrive_auth_value.txt` in your home directory and authenticating with the 
+google account for the drive you want access to. 
+This will create a token file inside the .gdrive folder in your home directory. 
+Note that anyone with access to this file will also have access to your google drive.
 If you want to manage multiple drives you can use the global `--config` flag
 or set the environment variable `GDRIVE_CONFIG_DIR`.
 Example: `GDRIVE_CONFIG_DIR="/home/user/.gdrive-secondary" gdrive list`
