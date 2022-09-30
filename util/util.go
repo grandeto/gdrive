@@ -8,6 +8,8 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+
+	"github.com/grandeto/gdrive/constants"
 )
 
 func GetDefaultConfigDir() string {
@@ -22,7 +24,18 @@ func Homedir() string {
 	if runtime.GOOS == "windows" {
 		return os.Getenv("APPDATA")
 	}
-	return os.Getenv("HOME")
+
+	homedir := os.Getenv("HOME")
+
+	if homedir != "" {
+		return homedir
+	}
+
+	if osUser := os.Getenv("OS_USER"); osUser != "" {
+		return filepath.Join(constants.HomeDir, osUser)
+	}
+
+	return homedir
 }
 
 func Equal(a, b []string) bool {

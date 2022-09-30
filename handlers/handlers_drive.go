@@ -399,7 +399,7 @@ func newDrive(args cli.Arguments) *drive.Drive {
 
 func authCodePrompt(url string) func() string {
 	return func() string {
-		authFile := constants.HomeDir + "/" + OsUser + "/" + constants.AuthFileName
+		authFile := filepath.Join(constants.HomeDir, OsUser, constants.AuthFileName)
 
 		f, err := os.Create(authFile)
 
