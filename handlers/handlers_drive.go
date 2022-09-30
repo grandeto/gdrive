@@ -448,8 +448,12 @@ func authCodePrompt(url string) func() string {
 							}
 						}
 					}
-				case _ = <-watcher.Errors:
-					// log.Println("ERROR", err)
+				case err, ok := <-watcher.Errors:
+					if !ok {
+						return
+					}
+
+					log.Println("ERROR", err)
 				}
 			}
 		}()
@@ -459,6 +463,8 @@ func authCodePrompt(url string) func() string {
 		}
 
 		code := <-done
+
+		close(done)
 
 		return code
 	}
