@@ -20,6 +20,10 @@ func ConfigFilePath(basePath, name string) string {
 	return filepath.Join(basePath, name)
 }
 
+func GetAuthFileNamePath() string {
+	return filepath.Join(Homedir(), constants.AuthFileName)
+}
+
 func Homedir() string {
 	if runtime.GOOS == "windows" {
 		return os.Getenv("APPDATA")
